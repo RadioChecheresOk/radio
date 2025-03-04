@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproductor de Radio Chécheres</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam:wght@400;500;700&display=swap');
+
+        /* Estilos para el ícono titilante y el control de volumen en móviles */
+        @keyframes titilar {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        #live-icon {
+            animation: titilar 1s infinite;
+        }
+
+        /* Ocultar el control de volumen en móviles */
+        @media (max-width: 768px) {
+            .volume-slider {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="radio-widget" style="width:100%; height:70px; display:flex; align-items:center; background-color:#101; color:white; font-family: 'Be Vietnam', sans-serif; padding:5px; border-radius:0px 0px 0 0;">
+        <!-- Botón de play/pause -->
+        <button id="play-pause" style="background:none; border:none; cursor:pointer; margin-right: 0px;">
+            <img id="play-icon" src="https://blogger.googleusercontent.com/img/a/AVvXsEiuncK4AxVG9Y_wm7TmJFYtmQr2Kq6_bgGk9WwVMbjBdjD3W1P0hKkfdF5pOWUhY_5avAbOd60iWfn44XY2KP_oz865Zk_IdxiAqtayeVPW_97-_p4AFyNWZClPM4963b_g1KaWucktXLMabOLvaMQLNiE3dNyNqWdPAfe9186dFSGQ1qg7OteenwDrd4Q" alt="Pausa" style="width:45px;margin-right:0px;" />
+        </button>
+
+        <!-- Imagen de la carátula -->
+        <img id="program-cover" src="https://via.placeholder.com/50" alt="Carátula" style="width:50px; height:50px; border-radius:5px; margin-right:5px;" />
+
+        <!-- Contenedor de texto -->
+        <div style="flex-grow:1; display:flex; flex-direction:column; justify-content: center;">
+            <!-- Primera línea: "Vivo" + ícono + "Radio Chécheres | Rock y Pop" -->
+            <div style="display: flex; align-items: baseline; gap: 3px;">
+                <span style="color:red; font-family: 'Be Vietnam', sans-serif; font-weight:bold; font-size:14px;">vivo</span>
+                <img id="live-icon" src="https://cdn.pixabay.com/photo/2022/01/01/15/22/red-6907837_960_720.png" 
+                     alt="En Vivo" class="live-icon" style="width: 5px; height: 5px; margin-top: 0px;" />
+                <span style="color:white; font-family: 'Be Vietnam', sans-serif; font-weight:bold; font-size:11px; line-height: 1;">Radio Chécheres | Rock y Pop</span>
+            </div>
+
+            <!-- Segunda línea: "Ahora:" + "Programa Emitiendo" -->
+            <div style="display: flex; align-items: baseline; margin-top: 0px;">
+                <span style="color:white; font-family: 'Be Vietnam', sans-serif; font-size:11px;">Ahora:</span>
+                <span id="current-program" style="font-weight:bold; font-family: 'Be Vietnam', sans-serif; font-size:19px; margin-left: 5px; line-height: 0.7;">Programa Emitiendo</span>
+            </div>
+
+            <!-- Tercera línea: "Siguiente Programa" -->
+            <div style="display: flex; align-items: baseline; margin-top: 0px;">
+                <span style="color:white; font-family: 'Be Vietnam', sans-serif; font-size:11px;">Sigue:</span>
+                <span id="next-program" style="font-size:13px; font-family: 'Be Vietnam', sans-serif; margin-left: 5px; line-height: 1;">Siguiente Programa</span>
+            </div>
+        </div>
+
+        <!-- Control de volumen (oculto en móviles) -->
+        <input id="volume-slider" type="range" min="0" max="1" step="0.1" value="1" style="width:120px; height:4px; margin:0 10px; accent-color:red;" class="volume-slider" />
+
+        <!-- Logo con enlace -->
+        <a href="https://www.radiochecheres.com/2019/02/sonando_19.html" target="_blank">
+            <img src="https://blogger.googleusercontent.com/img/a/AVvXsEj4zVbh5qp65T76hQSn07Gtj6saDGIFxGjJasXTt90IwFAjTVKwOCtvUnmccIKSymqrlZ__sJJFMb0frs2h0iGfVLODOMZbiMzkqelAsED8zA2devL55MbrmbgfDm2OitvFW8hUxolfhV6wGSikrK8lIV5iOo4NXHKoUKuEO6poWndyN7j7d7jz7IkrlDg" alt="Logo" style="width:50px; height:auto; margin-left:10px; margin-right:10px;" />
+        </a>
+    </div>
+
+    <!-- Reproductor de audio -->
+    <audio id="radio-stream" src="https://streaming.radiochecheres.com/listen/radiochecheres/radio.mp3"></audio>
+
+    <!-- Script para el reproductor -->
+    <script>
+        // Configuración del reproductor
+        let audio = document.getElementById("radio-stream");
+        let playPauseBtn = document.getElementById("play-pause");
+        let playIcon = document.getElementById("play-icon");
+        let volumeSlider = document.getElementById("volume-slider");
+
+        // Verificar si es un dispositivo móvil
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        // Iniciar el reproductor según el dispositivo
+        if (isMobile) {
+            // En móviles: autoplay con ícono de play
+            audio.autoplay = true;
+            audio.volume = volumeSlider.value;
+            playIcon.src = "https://blogger.googleusercontent.com/img/a/AVvXsEgGawh7zknQ0y0Gt1WBOZYQeSSClEnwEOV3URUaXf_1O2PZf4kP5RN5FkKloMzjKUS1Wd5IIiBAZBvWm5Dcjid-9hy-WF5B7JbcLoVx5Nb6-hp3GFX83W8QqcHj5oeWCmoF06drAi-J-rxD87MhOD_pKsxfwckp-uliI5DMfbdjDTLinrNLFynU0TOBGbY"; // Ícono de play
+        } else {
+            // En PC: autoplay con ícono de pausa
+            audio.autoplay = true;
+            audio.volume = volumeSlider.value;
+            playIcon.src = "https://blogger.googleusercontent.com/img/a/AVvXsEiuncK4AxVG9Y_wm7TmJFYtmQr2Kq6_bgGk9WwVMbjBdjD3W1P0hKkfdF5pOWUhY_5avAbOd60iWfn44XY2KP_oz865Zk_IdxiAqtayeVPW_97-_p4AFyNWZClPM4963b_g1KaWucktXLMabOLvaMQLNiE3dNyNqWdPAfe9186dFSGQ1qg7OteenwDrd4Q"; // Ícono de pausa
+        }
+
+        // Función para play/pause
+        playPauseBtn.addEventListener("click", function() {
+            if (audio.paused) {
+                audio.play();
+                playIcon.src = "https://blogger.googleusercontent.com/img/a/AVvXsEiuncK4AxVG9Y_wm7TmJFYtmQr2Kq6_bgGk9WwVMbjBdjD3W1P0hKkfdF5pOWUhY_5avAbOd60iWfn44XY2KP_oz865Zk_IdxiAqtayeVPW_97-_p4AFyNWZClPM4963b_g1KaWucktXLMabOLvaMQLNiE3dNyNqWdPAfe9186dFSGQ1qg7OteenwDrd4Q";
+            } else {
+                audio.pause();
+                playIcon.src = "https://blogger.googleusercontent.com/img/a/AVvXsEj9BU5EfrKu8mF2D1FD_ykueUYPcn-fmVCD_YDliCxdzTMQQhYbR_OjO29hOd0eEApXl4VxCdIWw3ZPB7tgqZ2HIqf9pGsHBwvMylVBrHVwCzVK3tl3G-20VgQHMDBJpUl5r5QvBghsQ4GCMModvAcJ57IxDyliubeZrpcUNn9qTcw1aoaRVZgCts-hnkI";
+            }
+        });
+
+        // Control de volumen
+        volumeSlider.addEventListener("input", function() {
+            audio.volume = volumeSlider.value;
+        });
+
+        // Actualización del programa según la hora
+        function updateProgram() {
+            let now = new Date();
+            let hour = now.getHours();
+            let currentProgram = "Programa Emitiendo";
+            let nextProgram = "Siguiente Programa";
+            let cover = "https://via.placeholder.com/50";
+            
+            if (hour >= 6 && hour < 12) {
+                currentProgram = "Mañana y Rock";
+                nextProgram = "Tiempo de Jazz PM";
+                cover = "https://blogger.googleusercontent.com/img/a/AVvXsEjGr-BuuqSwQAdEerwNe4bsbsEv2hob4blHd8g3YvyLSeXLpE0Gq7EWndVI7LM2WBx57iV26WgmS7NY5m5iEblJCPlwiJO0B_IWv0jsplSnN6o6QywwLswhX2fLHlbfZPkV8oC23o1VMIQejwnkQqx81tY0eEGXRs0eKeyoTngBt723pAnaB0HaG2jbimQ";
+            } else if (hour >= 12 && hour < 13) {
+                currentProgram = "Tiempo de Jazz PM";
+                nextProgram = "Almuerzo Pop";
+                cover = "https://blogger.googleusercontent.com/img/a/AVvXsEgLOU3MQpZnZF_eZx1ehwbUPSIwUsrnIKk3s9MJF-An8YJToxjtMTDZnKuqPWOR7GD3IU5hR_4_uYRZDn6YDVS9gcGVsc3iX7uP0hyZlls9lsRSXlNsO8sPGcc1FQpBBDBLnzHYLCewvDNIr2I_kiQ42gzMMe-6RrXAx6e50y3Ar1IjieDZCZpihKQI7Y0";
+            } else if (hour >= 13 && hour < 14) {
+                currentProgram = "Almuerzo Pop";
+                nextProgram = "Tarde Indie";
+                cover = "https://www.kamir.es/328484-superlarge_default_2x/fiambrera-lunch-box-metal-radio-cassette-retro.jpg";
+            } else if (hour >= 14 && hour < 18) {
+                currentProgram = "Tarde Indie";
+                nextProgram = "Noche Alterna";
+                cover = "https://blogger.googleusercontent.com/img/a/AVvXsEgtW00ODH1xyMuWsIf62XB-YtgYGgsr0cPvRahtHeBGaRb-rGKZvdg0tDHjDrcv0_CmKN69yFEJ3y2kakWou8fDpf-iidvH9BSr-pLTy5YPYSGBDunkbo3Ja7mdxNBcK8pKeK4r3GOxVlSJ4EYhH3j1YXmAZnnlEQU-4oBmU5BDtiB54LnMVKoPFja6";
+            } else if (hour >= 18 && hour < 24) {
+                currentProgram = "Noche Alterna";
+                nextProgram = "Noche Clásica";
+                cover = "https://images.fineartamerica.com/images/artworkimages/mediumlarge/1/night-landscape-lilia-d.jpg";
+            } else if (hour >= 0 && hour < 5) {
+                currentProgram = "Noche Clásica";
+                nextProgram = "Tiempo de Jazz AM";
+                cover = "https://blogger.googleusercontent.com/img/a/AVvXsEiEfL_9rrLq5OOjJqRbvO14kHrgywA1cfe3ghH_0L4RZCCmD9t2lrUEV7Pp6Q_WWDxWPlIIvrN28FOpcm4VJ9FMgIKI3-AhPOwAD0OFUHjsrdIvOJ9U6wQ9CeA_7m0gdRkt5HVU1L9-3hP6mf71aHXi5eZdI2h2N91k52mvjOMRkGxLQUM1UjHUkrStHg0";
+            } else if (hour >= 5 && hour < 6) {
+                currentProgram = "Tiempo de Jazz AM";
+                nextProgram = "Mañana y Rock";
+                cover = "https://blogger.googleusercontent.com/img/a/AVvXsEgLOU3MQpZnZF_eZx1ehwbUPSIwUsrnIKk3s9MJF-An8YJToxjtMTDZnKuqPWOR7GD3IU5hR_4_uYRZDn6YDVS9gcGVsc3iX7uP0hyZlls9lsRSXlNsO8sPGcc1FQpBBDBLnzHYLCewvDNIr2I_kiQ42gzMMe-6RrXAx6e50y3Ar1IjieDZCZpihKQI7Y0";
+            }
+            
+            document.getElementById("current-program").textContent = currentProgram;
+            document.getElementById("next-program").textContent = nextProgram;
+            document.getElementById("program-cover").src = cover;
+        }
+
+        // Actualizar cada minuto
+        setInterval(updateProgram, 60000);
+        updateProgram();
+    </script>
+</body>
+</html>
